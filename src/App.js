@@ -1,12 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "./App.css";
 import "@aws-amplify/ui-react/styles.css";
-import { listNotes } from "./graphql/queries";
-import {
-  createNote as createNoteMutation,
-  deleteNote as deleteNoteMutation,
-} from "./graphql/mutations";
-import { API, Storage } from 'aws-amplify';
+import { API, Storage } from "aws-amplify";
 import {
   Button,
   Flex,
@@ -16,7 +11,12 @@ import {
   TextField,
   View,
   withAuthenticator,
-} from '@aws-amplify/ui-react';
+} from "@aws-amplify/ui-react";
+import { listNotes } from "./graphql/queries";
+import {
+  createNote as createNoteMutation,
+  deleteNote as deleteNoteMutation,
+} from "./graphql/mutations";
 
 const App = ({ signOut }) => {
   const [notes, setNotes] = useState([]);
@@ -44,6 +44,9 @@ const App = ({ signOut }) => {
     event.preventDefault();
     const form = new FormData(event.target);
     const image = form.get("image");
+    const formData = new FormData(event.target);
+    const values = [...formData.entries()];
+    console.log(values);
     const data = {
       name: form.get("name"),
       description: form.get("description"),
@@ -57,16 +60,16 @@ const App = ({ signOut }) => {
     fetchNotes();
     event.target.reset();
   }
-
-async function deleteNote({ id, name }) {
-  const newNotes = notes.filter((note) => note.id !== id);
-  setNotes(newNotes);
-  await Storage.remove(name);
-  await API.graphql({
-    query: deleteNoteMutation,
-    variables: { input: { id } },
-  });
-}
+  
+  async function deleteNote({ id, name }) {
+    const newNotes = notes.filter((note) => note.id !== id);
+    setNotes(newNotes);
+    await Storage.remove(name);
+    await API.graphql({
+      query: deleteNoteMutation,
+      variables: { input: { id } },
+    });
+  }
 
   return (
     <View className="App">
@@ -92,6 +95,12 @@ async function deleteNote({ id, name }) {
           <Button type="submit" variation="primary">
             Create Note
           </Button>
+          <View
+  name="image"
+  as="input"
+  type="file"
+  style={{ alignSelf: "end" }}
+/>
         </Flex>
       </View>
       <Heading level={2}>Current Notes</Heading>
@@ -120,12 +129,6 @@ async function deleteNote({ id, name }) {
   </Flex>
 ))}
       </View>
-      <View
-  name="image"
-  as="input"
-  type="file"
-  style={{ alignSelf: "end" }}
-/>
       <Button onClick={signOut}>Sign Out</Button>
     </View>
   );
